@@ -1,26 +1,31 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
-import requests
 
-# Create a map
-m = folium.Map(location=[45.5236, -122.6750], zoom_start=13)
+# Initialize the map centered at a default location (you can change it later)
+m = folium.Map(location=[37.3382, 126.5924], zoom_start=12)
 
-# Create a function to get the current location
-def get_current_location():
-    response = requests.get('https://api.opencagedata.com/geocode/v1/json',
-                             params={'q': 'my current location', 'key': 'YOUR_OPEN_CAGE_GEOCODER_API_KEY'})
-    data = response.json()
-    return data['results'][0]['geometry']['lat'], data['results'][0]['geometry']['lng']
+# Define the Streamlit app
+def app():
+    st.title("My Current Place on Map")
 
-# Create a function to add a marker to the map
-def add_marker_to_map(lat, lng):
-    folium.Marker([lat, lng], popup='My Current Place').add_to(m)
+    # Create a button
+    if st.button("My Current Place"):
+        # Simulate getting user's location (replace with actual geolocation logic)
+        user_lat, user_lon = 37.3382, 126.5924  # Replace with actual geolocation
 
-# Create a button to show the current location
-if st.button('My Current Place'):
-    lat, lng = get_current_location()
-    add_marker_to_map(lat, lng)
+        # Add a circle marker at the user's location
+        folium.CircleMarker(
+            location=[user_lat, user_lon],
+            radius=50,  # Adjust the radius as needed
+            color="blue",
+            fill=True,
+            fill_color="blue",
+        ).add_to(m)
 
-# Display the map
-st_folium(m, width=800, height=600)
+    # Display the map in Streamlit
+    st_folium(m, width=700, height=500)
+
+# Run the app
+if __name__ == "__main__":
+    app()
