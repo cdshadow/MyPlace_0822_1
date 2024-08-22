@@ -1,43 +1,26 @@
 import streamlit as st
-from geopy.geocoders import Nominatim
 import folium
 from streamlit_folium import st_folium
+import requests
 
-# Initialize Nominatim API
-geolocator = Nominatim(user_agent="geoapiExercises")
+# Create a map
+m = folium.Map(location=[45.5236, -122.6750], zoom_start=13)
 
-# Streamlit App
-st.title("My Current Place on Map")
+# Create a function to get the current location
+def get_current_location():
+    response = requests.get('https://api.opencagedata.com/geocode/v1/json',
+                             params={'q': 'my current location', 'key': 'YOUR_OPEN_CAGE_GEOCODER_API_KEY'})
+    data = response.json()
+    return data['results'][0]['geometry']['lat'], data['results'][0]['geometry']['lng']
 
-# Button to get the current location
+# Create a function to add a marker to the map
+def add_marker_to_map(lat, lng):
+    folium.Marker([lat, lng], popup='My Current Place').add_to(m)
+
+# Create a button to show the current location
 if st.button('My Current Place'):
-    # Get current place (dummy coordinates, replace with actual method to get user's location)
-    # In real scenario, you would get this from user's browser or device GPS
-    location = geolocator.geocode("Your Current Address or City")
-    
-    if location:
-        lat, lon = location.latitude, location.longitude
-        st.success(f"Found your location: {location.address}")
-        
-        # Create a folium map centered at the location
-        m = folium.Map(location=[lat, lon], zoom_start=15)
-        
-        # Add a circle marker to the map
-        folium.CircleMarker(
-            location=[lat, lon],
-            radius=10,
-            popup="Your Current Place",
-            color="#3186cc",
-            fill=True,
-            fill_color="#3186cc"
-        ).add_to(m)
-        
-        # Display the map in Streamlit
-        st_folium(m, width=700, height=500)
-    else:
-        st.error("Could not determine your location.")
-else:
-    st.write("Click the button to show your current place on the map.")
+    lat, lng = get_current_location()
+    add_marker_to_map(lat, lng)
 
-# To deploy this on Streamlit, save this code in a file named `app.py` and run:
-# streamlit run app.py
+# Display the map
+st_folium(m, width=800, height=600)
