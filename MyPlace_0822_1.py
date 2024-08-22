@@ -1,65 +1,31 @@
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
+import requests
 
-# Streamlit App
-st.title("My Current Place on Map")
+# Create a map
+m = folium.Map(location=[45.5236, -122.6750], zoom_start=13)
 
-# JavaScript to get user's current location
-st.markdown(
-    """
-    <script>
-    function getLocation() {
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-                document.getElementById("lat").value = latitude;
-                document.getElementById("lon").value = longitude;
-                document.getElementById("location-form").submit();
-            }
-        );
-    }
-    </script>
-    """,
-    unsafe_allow_html=True,
-)
+# Create a function to get the current location
+def get_current_location():
+    if st.button('My Current Place'):
+        try:
+            response = requests.get('https://ipapi.co/json/')
+            data = response.json()
+            return data['latitude'], data['longitude']
+        except:
+            return None, None
 
-# Form to trigger the location function and hold the latitude and longitude
-st.markdown(
-    """
-    <form id="location-form" action="" method="POST">
-        <input type="hidden" id="lat" name="lat">
-        <input type="hidden" id="lon" name="lon">
-        <input type="button" value="My Current Place" onclick="getLocation()">
-    </form>
-    """,
-    unsafe_allow_html=True,
-)
+# Create a function to add a marker to the map
+def add_marker_to_map(lat, lng):
+    folium.Marker([lat, lng], popup='My Current Place').add_to(m)
 
-# Get the latitude and longitude from the form submission
-lat = st.experimental_get_query_params().get("lat", [None])[0]
-lon = st.experimental_get_query_params().get("lon", [None])[0]
+# Get the current location
+lat, lng = get_current_location()
 
-if lat and lon:
-    lat = float(lat)
-    lon = float(lon)
-    st.success(f"Found your location: Latitude: {lat}, Longitude: {lon}")
+# Add a marker to the map
+if lat is not None and lng is not None:
+    add_marker_to_map(lat, lng)
 
-    # Create a folium map centered at the location
-    m = folium.Map(location=[lat, lon], zoom_start=15)
-
-    # Add a circle marker to the map
-    folium.CircleMarker(
-        location=[lat, lon],
-        radius=10,
-        popup="Your Current Place",
-        color="#3186cc",
-        fill=True,
-        fill_color="#3186cc"
-    ).add_to(m)
-
-    # Display the map in Streamlit
-    st_folium(m, width=700, height=500)
-else:
-    st.write("Click the button to show your current place on the map.")
+# Display the map
+st_folium(m, width=800, height=600)
