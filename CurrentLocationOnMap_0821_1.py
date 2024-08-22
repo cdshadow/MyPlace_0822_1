@@ -1,32 +1,43 @@
-#주소검색을 통해 지도 이동
-
 import streamlit as st
+from geopy.geocoders import Nominatim
 import folium
 from streamlit_folium import st_folium
-from geopy.geocoders import GoogleV3
 
-# Google Geocoding API 키 설정
-api_key = "AIzaSyCW-4kxARbJUxL3jmOz5dR5D-AabKhDJdc"  # 여기에 당신의 Google API 키를 입력하세요.
+# Initialize Nominatim API
+geolocator = Nominatim(user_agent="geoapiExercises")
 
-# 사용자 위치 입력
-st.sidebar.title("현위치 입력")
-location_input = st.sidebar.text_input("위치 입력 (예: 서울, 대전, New York)", "대전")
+# Streamlit App
+st.title("My Current Place on Map")
 
-# Geopy를 사용하여 입력된 위치의 좌표를 가져오기
-geolocator = GoogleV3(api_key=api_key)
-location = geolocator.geocode(location_input)
-
-# Folium 지도 생성 (입력된 위치를 중심으로 설정)
-if location:
-    map_obj = folium.Map(
-        location=[location.latitude, location.longitude],  # 입력된 위치의 중심 좌표
-        zoom_start=12  # 줌 레벨 설정
-    )
-
-    # 현위치 마커 추가
-    folium.Marker([location.latitude, location.longitude], tooltip="Current Location").add_to(map_obj)
-
-    # Streamlit 앱에 지도 표시
-    st_folium(map_obj, width=800, height=600)
+# Button to get the current location
+if st.button('My Current Place'):
+    # Get current place (dummy coordinates, replace with actual method to get user's location)
+    # In real scenario, you would get this from user's browser or device GPS
+    location = geolocator.geocode("Your Current Address or City")
+    
+    if location:
+        lat, lon = location.latitude, location.longitude
+        st.success(f"Found your location: {location.address}")
+        
+        # Create a folium map centered at the location
+        m = folium.Map(location=[lat, lon], zoom_start=15)
+        
+        # Add a circle marker to the map
+        folium.CircleMarker(
+            location=[lat, lon],
+            radius=10,
+            popup="Your Current Place",
+            color="#3186cc",
+            fill=True,
+            fill_color="#3186cc"
+        ).add_to(m)
+        
+        # Display the map in Streamlit
+        st_folium(m, width=700, height=500)
+    else:
+        st.error("Could not determine your location.")
 else:
-    st.error("위치를 찾을 수 없습니다. 다시 입력해 주세요.")
+    st.write("Click the button to show your current place on the map.")
+
+# To deploy this on Streamlit, save this code in a file named `app.py` and run:
+# streamlit run app.py
